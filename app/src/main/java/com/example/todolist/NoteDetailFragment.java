@@ -99,6 +99,7 @@ public class NoteDetailFragment extends Fragment {
         }
     }
 
+    //возвращаю фрагменты NotesFragment
     @RequiresApi(api = Build.VERSION_CODES.N)
     private void updateData() {
         NotesFragment notesFragment = (NotesFragment) requireActivity().getSupportFragmentManager().getFragments().stream().filter(fragment -> fragment instanceof NotesFragment)
