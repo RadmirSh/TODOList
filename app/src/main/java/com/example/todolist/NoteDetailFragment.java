@@ -1,9 +1,11 @@
 package com.example.todolist;
 
+import android.os.Build;
 import android.os.Bundle;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.annotation.RequiresApi;
 import androidx.fragment.app.Fragment;
 
 import android.text.Editable;
@@ -11,12 +13,17 @@ import android.text.TextWatcher;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.TextView;
+
+import static com.example.todolist.NoteDetailFragment.SELECTED_NOTE;
+
+import java.util.Arrays;
 
 public class NoteDetailFragment extends Fragment {
 
-    static final String ARG_INDEX = "index";
-    private Notes notes;
+    static final String SELECTED_NOTE = "note";
+    private Notes note;
 
 
     public NoteDetailFragment() {
@@ -26,8 +33,8 @@ public class NoteDetailFragment extends Fragment {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        if (savedInstanceState != null)
-            requireActivity().getSupportFragmentManager().popBackStack();
+        /*if (savedInstanceState != null)
+            requireActivity().getSupportFragmentManager().popBackStack();*/
     }
 
 
@@ -38,17 +45,33 @@ public class NoteDetailFragment extends Fragment {
         return inflater.inflate(R.layout.fragment_note_detail, container, false);
     }
 
+    @RequiresApi(api = Build.VERSION_CODES.N)
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
         Bundle arguments = getArguments();
+
+        Button buttonBack = view.findViewById(R.id.btnBack);
+        buttonBack.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                requireActivity().getSupportFragmentManager().popBackStack();
+            }
+        });
+
         if (arguments != null) {
 
+
             // получаю текущий индекс записи из массива
-            int index = arguments.getInt(ARG_INDEX);
+            // int index = arguments.getInt(SELECTED_NOTE);
+
+            Notes paramNote = (Notes) arguments.getParcelable(SELECTED_NOTE);
+
+            // возвращаю ссылку на объект с помощью предиката
+            note = Arrays.stream(Notes.getNotes()).filter( n -> n.getId() == paramNote.getId()).findFirst().get();
 
             TextView tvName = view.findViewById(R.id.tvName);
-            tvName.setText(Notes.getNotes()[index].getName());
+            tvName.setText(note.getName());
 
             // подписываюсь на ChangeListener
             tvName.addTextChangedListener(new TextWatcher() {
@@ -60,7 +83,10 @@ public class NoteDetailFragment extends Fragment {
                 // изменяю Name объекта
                 @Override
                 public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
-                    Notes.getNotes()[index].setName(charSequence.toString());
+                    // запись значения Name
+                    note.setName(tvName.getText().toString());
+                    updateData();
+                    // Notes.getNotes()[index].setName(charSequence.toString());
                 }
 
                 @Override
@@ -69,14 +95,31 @@ public class NoteDetailFragment extends Fragment {
             });
 
             TextView tvContent = view.findViewById(R.id.tvContent);
-            tvContent.setText(Notes.getNotes()[index].getContent());
+            tvContent.setText(note.getContent());
         }
+    }
+
+    @RequiresApi(api = Build.VERSION_CODES.N)
+    private void updateData() {
+        NotesFragment notesFragment = (NotesFragment) requireActivity().getSupportFragmentManager().getFragments().stream().filter(fragment -> fragment instanceof NotesFragment)
+                .findFirst().get();
+        notesFragment.initNotes();
+
     }
 
     public static NoteDetailFragment newInstance(int index) {
         NoteDetailFragment fragment = new NoteDetailFragment();
         Bundle args = new Bundle();
-        args.putInt(ARG_INDEX, index);
+        args.putInt(SELECTED_NOTE, index);
+        fragment.setArguments(args);
+        return fragment;
+
+    }
+
+    public static NoteDetailFragment newInstance(Notes note) {
+        NoteDetailFragment fragment = new NoteDetailFragment();
+        Bundle args = new Bundle();
+        args.putParcelable(SELECTED_NOTE, note);
         fragment.setArguments(args);
         return fragment;
 

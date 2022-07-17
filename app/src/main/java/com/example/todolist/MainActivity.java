@@ -16,5 +16,6 @@ public class MainActivity extends AppCompatActivity {
                 .beginTransaction()
                 .add(R.id.notes_container, new NotesFragment())
                 .commit();
+
     }
 }

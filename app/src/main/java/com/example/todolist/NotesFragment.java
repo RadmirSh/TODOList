@@ -1,5 +1,7 @@
 package com.example.todolist;
 
+import android.app.Activity;
+import android.content.Intent;
 import android.content.res.Configuration;
 import android.os.Bundle;
 
@@ -15,15 +17,15 @@ import android.view.ViewGroup;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
+import static com.example.todolist.NoteDetailFragment.SELECTED_NOTE;
+
 
 public class NotesFragment extends Fragment {
 
-    Notes notes;
+    Notes note;
     View dataContainer;
 
 
-    static final String SELECTED_INDEX = "index";
-    int selectedIndex = 0;
 
     public NotesFragment() {
         // Required empty public constructor
@@ -32,7 +34,7 @@ public class NotesFragment extends Fragment {
     // сохраняем сотояние с индексом элемента массива записей
     @Override
     public void onSaveInstanceState(@NonNull Bundle outState) {
-        outState.putInt(SELECTED_INDEX, selectedIndex);
+        outState.putParcelable(SELECTED_NOTE, note);
         super.onSaveInstanceState(outState);
     }
 
@@ -53,14 +55,20 @@ public class NotesFragment extends Fragment {
         super.onViewCreated(view, savedInstanceState);
         // проверяем текущее состояние
         if (savedInstanceState != null) {
-            selectedIndex = savedInstanceState.getInt(SELECTED_INDEX, 0);
+            //selectedIndex = savedInstanceState.getInt(SELECTED_NOTE, 0);
+            // note = (Notes) savedInstanceState.getSerializable(SELECTED_NOTE);
+            note = (Notes) savedInstanceState.getParcelable(SELECTED_NOTE);
+
         }
+
+        dataContainer = view.findViewById(R.id.data_container);
+        initNotes(dataContainer);
 
         // инициализация списка записей
         initNotes(view.findViewById(R.id.data_container));
 
         if (isLandscape()) {
-            showLandNoteDetails(selectedIndex);
+            showLandNoteDetails(note);
         }
     }
 
@@ -69,8 +77,13 @@ public class NotesFragment extends Fragment {
                 == Configuration.ORIENTATION_LANDSCAPE;
     }
 
+    public void initNotes() {
+        initNotes(dataContainer);
+    }
+
     private void initNotes(View view) {
         LinearLayout layoutView = (LinearLayout) view;
+        layoutView.removeAllViews();
         for (int i = 0; i < Notes.getNotes().length; i++) {
 
             TextView tv = new TextView(getContext());
@@ -79,29 +92,62 @@ public class NotesFragment extends Fragment {
             layoutView.addView(tv);
 
             final int index = i;
-            tv.setOnClickListener(view1 -> showNoteDetails(index));
+            tv.setOnClickListener(view1 -> showNoteDetails(Notes.getNotes()[index]));
         }
     }
 
-    private void showNoteDetails(int index){
+    private void showNoteDetails(Notes note) {
+        this.note = note;
+        if (isLandscape()) {
+            showLandNoteDetails(note);
+        } else {
+            showPortNoteDetails(note);
+        }
+    }
+
+    /*private void showNoteDetails(int index) {
         selectedIndex = index;
-        if (isLandscape()){
+        if (isLandscape()) {
             showLandNoteDetails(index);
         } else {
             showPortNoteDetails(index);
         }
-    }
+    }*/
 
     // отрисовка списка заметок
-    private void showPortNoteDetails(int index) {
-        NoteDetailFragment noteDetailFragment = NoteDetailFragment.newInstance(index);
+    private void showPortNoteDetails(Notes note) {
+
+        /*NoteDetailFragment noteDetailFragment = NoteDetailFragment.newInstance(index);
         FragmentManager fragmentManager = requireActivity().getSupportFragmentManager();
         FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
         fragmentTransaction.add(R.id.notes_container, noteDetailFragment);
         fragmentTransaction.addToBackStack("");
         fragmentTransaction.setTransition((FragmentTransaction.TRANSIT_FRAGMENT_FADE));
+        fragmentTransaction.commit();*/
+
+
+        /*Activity activity = requireActivity();
+        final Intent intent = new Intent(activity, NoteActivity.class);
+        intent.putExtra(SELECTED_NOTE, note);
+        activity.startActivity(intent);*/
+
+        NoteDetailFragment noteDetailFragment = NoteDetailFragment.newInstance(note);
+        FragmentManager fragmentManager = requireActivity().getSupportFragmentManager();
+        FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
+        fragmentTransaction.add(R.id.notes_container, noteDetailFragment); // замена фрагмента
+        fragmentTransaction.addToBackStack(" ");
+        fragmentTransaction.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE);
         fragmentTransaction.commit();
 
+    }
+
+    private void showLandNoteDetails(Notes note) {
+        NoteDetailFragment noteDetailFragment = NoteDetailFragment.newInstance(note);
+        FragmentManager fragmentManager = requireActivity().getSupportFragmentManager();
+        FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
+        fragmentTransaction.replace(R.id.notes_container, noteDetailFragment); // замена фрагмента
+        fragmentTransaction.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE);
+        fragmentTransaction.commit();
     }
 
     // отрисовка дополнительного фрагмента
