@@ -11,6 +11,9 @@ import androidx.fragment.app.Fragment;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
@@ -35,8 +38,37 @@ public class NoteDetailFragment extends Fragment {
         super.onCreate(savedInstanceState);
         /*if (savedInstanceState != null)
             requireActivity().getSupportFragmentManager().popBackStack();*/
+        setHasOptionsMenu(true); //для управления меню, определенной в рамках главной активити
+
     }
 
+    @Override
+    public void onCreateOptionsMenu(@NonNull Menu menu, @NonNull MenuInflater inflater) {
+        super.onCreateOptionsMenu(menu, inflater);
+
+        inflater.inflate(R.menu.note_menu, menu);
+
+        MenuItem menuItemExit = menu.findItem(R.id.action_exit);
+        if (menuItemExit != null)
+            menuItemExit.setVisible(false);        //видимость для action_exit
+
+        MenuItem menuItemAbout = menu.findItem(R.id.action_about);
+        if (menuItemAbout != null)
+            menuItemAbout.setVisible(false);
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(@NonNull MenuItem item) {
+
+        if (item.getItemId() == R.id.action_delete) {         //получаю ссылку на обект item
+
+        }
+
+
+        return super.onOptionsItemSelected(item);
+
+
+    }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -68,7 +100,8 @@ public class NoteDetailFragment extends Fragment {
             Notes paramNote = (Notes) arguments.getParcelable(SELECTED_NOTE);
 
             // возвращаю ссылку на объект с помощью предиката
-            note = Arrays.stream(Notes.getNotes()).filter( n -> n.getId() == paramNote.getId()).findFirst().get();
+            //note = Arrays.stream(Notes.getNotes()).filter(n -> n.getId() == paramNote.getId()).findFirst().get();
+            note = Notes.getNotes().stream().filter(n -> n.getId() == paramNote.getId()).findFirst().get();
 
             TextView tvName = view.findViewById(R.id.tvName);
             tvName.setText(note.getName());
