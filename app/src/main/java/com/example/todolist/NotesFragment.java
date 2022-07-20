@@ -7,11 +7,13 @@ import android.os.Bundle;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.appcompat.widget.PopupMenu;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
 
 import android.view.LayoutInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.LinearLayout;
@@ -92,8 +94,34 @@ public class NotesFragment extends Fragment {
             layoutView.addView(tv);
 
             final int index = i;
+            initPopupMenu(layoutView, tv, index); // вызываю раскрывающееся меню
             tv.setOnClickListener(view1 -> showNoteDetails(Notes.getNotes().get(index)));
         }
+    }
+
+
+    private void initPopupMenu(LinearLayout rootView, TextView view, int index){
+        // продолжительное нажатие
+        view.setOnLongClickListener(v -> {
+            Activity activity = requireActivity();
+            PopupMenu popupMenu = new PopupMenu(activity, view);
+            activity.getMenuInflater().inflate(R.menu.notes_popup, popupMenu.getMenu());
+            //подписываюсь на нажатие по кнопкам popupMenu
+            popupMenu.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
+                @Override
+                public boolean onMenuItemClick(MenuItem menuItem) {
+                    switch (menuItem.getItemId()){
+                        case R.id.action_popup_delete:
+                            Notes.getNotes().remove(index);
+                            rootView.removeView(view);
+                            break;
+                    }
+                    return true;
+                }
+            });
+            popupMenu.show();
+            return true;
+        });
     }
 
     private void showNoteDetails(Notes note) {

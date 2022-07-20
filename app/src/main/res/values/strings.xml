@@ -7,4 +7,5 @@
     <string name="exit">выход</string>
     <string name="about_program">о программе</string>
     <string name="delete">удалить</string>
+    <string name="delete_item">удалить</string>
 </resources>

@@ -2,6 +2,7 @@ package com.example.todolist;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
 
 import android.os.Bundle;
 import android.view.Menu;
@@ -14,12 +15,18 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        initToolBar();
+
         // запуск основного фрагмента
         if (savedInstanceState == null) getSupportFragmentManager()
                 .beginTransaction()
                 .add(R.id.notes_container, new NotesFragment())
                 .commit();
+    }
 
+    private void initToolBar(){
+        Toolbar toolbar = findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
     }
 
     @Override
