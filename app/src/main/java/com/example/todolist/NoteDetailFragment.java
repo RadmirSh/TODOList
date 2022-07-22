@@ -115,8 +115,7 @@ public class NoteDetailFragment extends Fragment {
                 //возвращаю и сохраняю конкретный объект из коллекции
                 note = selectedNote.orElseGet(() -> Notes.getNotes().get(0));
 
-
-                note = selectedNote.orElseGet(() -> Notes.getNotes().get(0)); //в случае удаления(сохранения) элемента выделяю первый элемент из списка
+                //note = selectedNote.orElseGet(() -> Notes.getNotes().get(0)); //в случае удаления(сохранения) элемента выделяю первый элемент из списка
             }
             // возвращаю ссылку на объект с помощью предиката
             //сохраняю ссылку в переменную note

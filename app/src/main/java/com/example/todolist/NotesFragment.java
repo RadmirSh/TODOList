@@ -28,14 +28,16 @@ public class NotesFragment extends Fragment {
     View dataContainer;
 
 
-
     public NotesFragment() {
         // Required empty public constructor
     }
 
-    // сохраняем сотояние с индексом элемента массива записей
+
     @Override
     public void onSaveInstanceState(@NonNull Bundle outState) {
+
+        if (note == null)
+            note = Notes.getNotes().get(0);
         outState.putParcelable(SELECTED_NOTE, note);
         super.onSaveInstanceState(outState);
     }
@@ -57,10 +59,7 @@ public class NotesFragment extends Fragment {
         super.onViewCreated(view, savedInstanceState);
         // проверяем текущее состояние
         if (savedInstanceState != null) {
-            //selectedIndex = savedInstanceState.getInt(SELECTED_NOTE, 0);
-            // note = (Notes) savedInstanceState.getSerializable(SELECTED_NOTE);
             note = (Notes) savedInstanceState.getParcelable(SELECTED_NOTE);
-
         }
 
         dataContainer = view.findViewById(R.id.data_container);
@@ -100,7 +99,7 @@ public class NotesFragment extends Fragment {
     }
 
 
-    private void initPopupMenu(LinearLayout rootView, TextView view, int index){
+    private void initPopupMenu(LinearLayout rootView, TextView view, int index) {
         // продолжительное нажатие
         view.setOnLongClickListener(v -> {
             Activity activity = requireActivity();
@@ -110,7 +109,7 @@ public class NotesFragment extends Fragment {
             popupMenu.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
                 @Override
                 public boolean onMenuItemClick(MenuItem menuItem) {
-                    switch (menuItem.getItemId()){
+                    switch (menuItem.getItemId()) {
                         case R.id.action_popup_delete:
                             Notes.getNotes().remove(index);
                             rootView.removeView(view);
@@ -144,46 +143,22 @@ public class NotesFragment extends Fragment {
 
     // отрисовка списка заметок
     private void showPortNoteDetails(Notes note) {
-
-        /*NoteDetailFragment noteDetailFragment = NoteDetailFragment.newInstance(index);
-        FragmentManager fragmentManager = requireActivity().getSupportFragmentManager();
-        FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
-        fragmentTransaction.add(R.id.notes_container, noteDetailFragment);
-        fragmentTransaction.addToBackStack("");
-        fragmentTransaction.setTransition((FragmentTransaction.TRANSIT_FRAGMENT_FADE));
-        fragmentTransaction.commit();*/
-
-
-        /*Activity activity = requireActivity();
-        final Intent intent = new Intent(activity, NoteActivity.class);
-        intent.putExtra(SELECTED_NOTE, note);
-        activity.startActivity(intent);*/
-
         NoteDetailFragment noteDetailFragment = NoteDetailFragment.newInstance(note);
         FragmentManager fragmentManager = requireActivity().getSupportFragmentManager();
         FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
         fragmentTransaction.add(R.id.notes_container, noteDetailFragment); // замена фрагмента
-        fragmentTransaction.addToBackStack(" ");
+        fragmentTransaction.addToBackStack("");
         fragmentTransaction.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE);
         fragmentTransaction.commit();
 
     }
 
+    // отрисовка дополнительного фрагмента
     private void showLandNoteDetails(Notes note) {
         NoteDetailFragment noteDetailFragment = NoteDetailFragment.newInstance(note);
         FragmentManager fragmentManager = requireActivity().getSupportFragmentManager();
         FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
-        fragmentTransaction.replace(R.id.notes_container, noteDetailFragment); // замена фрагмента
-        fragmentTransaction.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE);
-        fragmentTransaction.commit();
-    }
-
-    // отрисовка дополнительного фрагмента
-    private void showLandNoteDetails(int index) {
-        NoteDetailFragment noteDetailFragment = NoteDetailFragment.newInstance(index);
-        FragmentManager fragmentManager = requireActivity().getSupportFragmentManager();
-        FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
-        fragmentTransaction.replace(R.id.notes_container, noteDetailFragment); // замена фрагмента
+        fragmentTransaction.replace(R.id.note_container, noteDetailFragment); // замена фрагмента
         fragmentTransaction.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE);
         fragmentTransaction.commit();
     }
