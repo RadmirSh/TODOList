@@ -1,5 +1,7 @@
 package com.example.todolist;
 
+import android.content.res.Configuration;
+import android.media.VolumeShaper;
 import android.os.Build;
 import android.os.Bundle;
 
@@ -11,6 +13,9 @@ import androidx.fragment.app.Fragment;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
@@ -19,6 +24,7 @@ import android.widget.TextView;
 import static com.example.todolist.NoteDetailFragment.SELECTED_NOTE;
 
 import java.util.Arrays;
+import java.util.Optional;
 
 public class NoteDetailFragment extends Fragment {
 
@@ -37,11 +43,49 @@ public class NoteDetailFragment extends Fragment {
             requireActivity().getSupportFragmentManager().popBackStack();*/
     }
 
+    @Override
+    public void onCreateOptionsMenu(@NonNull Menu menu, @NonNull MenuInflater inflater) {
+        super.onCreateOptionsMenu(menu, inflater);
+
+        inflater.inflate(R.menu.note_menu, menu);
+
+        MenuItem menuItemExit = menu.findItem(R.id.action_exit);
+        if (menuItemExit != null)
+            menuItemExit.setVisible(false);        //видимость для action_exit
+
+        MenuItem menuItemAbout = menu.findItem(R.id.action_about);
+        if (menuItemAbout != null)
+            menuItemAbout.setVisible(false);
+    }
+
+    @RequiresApi(api = Build.VERSION_CODES.N)
+    @Override
+    public boolean onOptionsItemSelected(@NonNull MenuItem item) {
+
+        if (item.getItemId() == R.id.action_delete) {         //получаю ссылку на обект item
+
+            Notes.getNotes().remove(note); //удаляю элемент из коллекции
+            updateData();
+            if (!isLandscape()) {
+                requireActivity().getSupportFragmentManager().popBackStack();
+            }
+            return true;
+        }
+
+
+        return super.onOptionsItemSelected(item);
+    }
+
+    //метод для определения текущей ориентации
+    private boolean isLandscape() {
+        return getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE;
+    }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        // Inflate the layout for this fragment
+        if (savedInstanceState == null)
+            setHasOptionsMenu(true); //для управления меню, определенной в рамках главной активити
         return inflater.inflate(R.layout.fragment_note_detail, container, false);
     }
 
@@ -52,23 +96,30 @@ public class NoteDetailFragment extends Fragment {
         Bundle arguments = getArguments();
 
         Button buttonBack = view.findViewById(R.id.btnBack);
-        buttonBack.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                requireActivity().getSupportFragmentManager().popBackStack();
-            }
-        });
+        if (buttonBack != null)
+
+            buttonBack.setOnClickListener(view1 -> requireActivity().getSupportFragmentManager().popBackStack());
 
         if (arguments != null) {
-
-
-            // получаю текущий индекс записи из массива
-            // int index = arguments.getInt(SELECTED_NOTE);
-
             Notes paramNote = (Notes) arguments.getParcelable(SELECTED_NOTE);
 
+            if (paramNote != null) {
+                Optional<Notes> selectedNote = Notes.getNotes().stream().filter(n -> n.getId() == paramNote.getId()).findFirst();
+
+               /* if (selectedNote.isPresent()) {
+                    note = selectedNote.get(); //возвращаю и сохраняю конкретный объект из коллекции
+                } else {
+                    note = Notes.getNotes().get(0);
+                }*/
+
+                //возвращаю и сохраняю конкретный объект из коллекции
+                note = selectedNote.orElseGet(() -> Notes.getNotes().get(0));
+
+                //note = selectedNote.orElseGet(() -> Notes.getNotes().get(0)); //в случае удаления(сохранения) элемента выделяю первый элемент из списка
+            }
             // возвращаю ссылку на объект с помощью предиката
-            note = Arrays.stream(Notes.getNotes()).filter( n -> n.getId() == paramNote.getId()).findFirst().get();
+            //сохраняю ссылку в переменную note
+            //note = Notes.getNotes().stream().filter(n -> n.getId() == paramNote.getId()).findFirst().get();
 
             TextView tvName = view.findViewById(R.id.tvName);
             tvName.setText(note.getName());

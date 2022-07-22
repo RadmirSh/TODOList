@@ -1,6 +1,19 @@
 <resources>
-    <string name="app_name">TODOList</string>
+    <string name="app_name">Мои заметки</string>
     <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
     <string name="back">Назад</string>
+    <string name="about">о программе</string>
+    <string name="exit">выход</string>
+    <string name="about_program">о программе</string>
+    <string name="delete">удалить</string>
+    <string name="delete_item">Удалить</string>
+    <string name="title_header">Навигация</string>
+    <string name="image_header">Изображение</string>
+
+    <string name="navigation_drawer_open">Open navigation drawer</string>
+    <string name="navigation_drawer_close">Close navigation drawer</string>
+    <string name="notification">уведомления</string>
+    <string name="settings">настройки</string>
+    <string name="about_notification">уведомления</string>
 </resources>
