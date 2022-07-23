@@ -9,6 +9,7 @@ import androidx.annotation.RequiresApi;
 
 import java.io.Serializable;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Random;
 
@@ -17,7 +18,7 @@ public class Notes implements Parcelable {
     private int id; // идентификатор записи
     private static final Random random = new Random();
 
-    private static Notes[] notes;
+    private static ArrayList<Notes> notes;
     private static int counter;
 
     private String name;
@@ -29,7 +30,7 @@ public class Notes implements Parcelable {
         return id;
     }
 
-    public static Notes[] getNotes() {
+    public static ArrayList<Notes> getNotes() {
         return notes;
     }
 
@@ -64,9 +65,9 @@ public class Notes implements Parcelable {
     // инициализатор отрабатывает в первую очередь
     // инициализирую массив из 5 заметок (через фабричный метод getNotes())
     static {
-        notes = new Notes[5];
-        for (int i = 0; i < notes.length; i++) {
-            notes[i] = Notes.getNotes(i);
+        notes = new ArrayList<>();
+        for (int i = 0; i < 5; i++) {
+            notes.add(Notes.getNotes(i));
         }
     }
 

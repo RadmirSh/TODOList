@@ -7,11 +7,13 @@ import android.os.Bundle;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.appcompat.widget.PopupMenu;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
 
 import android.view.LayoutInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.LinearLayout;
@@ -26,14 +28,16 @@ public class NotesFragment extends Fragment {
     View dataContainer;
 
 
-
     public NotesFragment() {
         // Required empty public constructor
     }
 
-    // сохраняем сотояние с индексом элемента массива записей
+
     @Override
     public void onSaveInstanceState(@NonNull Bundle outState) {
+
+        if (note == null)
+            note = Notes.getNotes().get(0);
         outState.putParcelable(SELECTED_NOTE, note);
         super.onSaveInstanceState(outState);
     }
@@ -55,10 +59,7 @@ public class NotesFragment extends Fragment {
         super.onViewCreated(view, savedInstanceState);
         // проверяем текущее состояние
         if (savedInstanceState != null) {
-            //selectedIndex = savedInstanceState.getInt(SELECTED_NOTE, 0);
-            // note = (Notes) savedInstanceState.getSerializable(SELECTED_NOTE);
             note = (Notes) savedInstanceState.getParcelable(SELECTED_NOTE);
-
         }
 
         dataContainer = view.findViewById(R.id.data_container);
@@ -84,16 +85,42 @@ public class NotesFragment extends Fragment {
     private void initNotes(View view) {
         LinearLayout layoutView = (LinearLayout) view;
         layoutView.removeAllViews();
-        for (int i = 0; i < Notes.getNotes().length; i++) {
+        for (int i = 0; i < Notes.getNotes().size(); i++) {
 
             TextView tv = new TextView(getContext());
-            tv.setText(Notes.getNotes()[i].getName());
+            tv.setText(Notes.getNotes().get(i).getName());
             tv.setTextSize(28);
             layoutView.addView(tv);
 
             final int index = i;
-            tv.setOnClickListener(view1 -> showNoteDetails(Notes.getNotes()[index]));
+            initPopupMenu(layoutView, tv, index); // вызываю раскрывающееся меню
+            tv.setOnClickListener(view1 -> showNoteDetails(Notes.getNotes().get(index)));
         }
+    }
+
+
+    private void initPopupMenu(LinearLayout rootView, TextView view, int index) {
+        // продолжительное нажатие
+        view.setOnLongClickListener(v -> {
+            Activity activity = requireActivity();
+            PopupMenu popupMenu = new PopupMenu(activity, view);
+            activity.getMenuInflater().inflate(R.menu.notes_popup, popupMenu.getMenu());
+            //подписываюсь на нажатие по кнопкам popupMenu
+            popupMenu.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
+                @Override
+                public boolean onMenuItemClick(MenuItem menuItem) {
+                    switch (menuItem.getItemId()) {
+                        case R.id.action_popup_delete:
+                            Notes.getNotes().remove(index);
+                            rootView.removeView(view);
+                            break;
+                    }
+                    return true;
+                }
+            });
+            popupMenu.show();
+            return true;
+        });
     }
 
     private void showNoteDetails(Notes note) {
@@ -116,46 +143,22 @@ public class NotesFragment extends Fragment {
 
     // отрисовка списка заметок
     private void showPortNoteDetails(Notes note) {
-
-        /*NoteDetailFragment noteDetailFragment = NoteDetailFragment.newInstance(index);
-        FragmentManager fragmentManager = requireActivity().getSupportFragmentManager();
-        FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
-        fragmentTransaction.add(R.id.notes_container, noteDetailFragment);
-        fragmentTransaction.addToBackStack("");
-        fragmentTransaction.setTransition((FragmentTransaction.TRANSIT_FRAGMENT_FADE));
-        fragmentTransaction.commit();*/
-
-
-        /*Activity activity = requireActivity();
-        final Intent intent = new Intent(activity, NoteActivity.class);
-        intent.putExtra(SELECTED_NOTE, note);
-        activity.startActivity(intent);*/
-
         NoteDetailFragment noteDetailFragment = NoteDetailFragment.newInstance(note);
         FragmentManager fragmentManager = requireActivity().getSupportFragmentManager();
         FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
         fragmentTransaction.add(R.id.notes_container, noteDetailFragment); // замена фрагмента
-        fragmentTransaction.addToBackStack(" ");
+        fragmentTransaction.addToBackStack("");
         fragmentTransaction.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE);
         fragmentTransaction.commit();
 
     }
 
+    // отрисовка дополнительного фрагмента
     private void showLandNoteDetails(Notes note) {
         NoteDetailFragment noteDetailFragment = NoteDetailFragment.newInstance(note);
         FragmentManager fragmentManager = requireActivity().getSupportFragmentManager();
         FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
-        fragmentTransaction.replace(R.id.notes_container, noteDetailFragment); // замена фрагмента
-        fragmentTransaction.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE);
-        fragmentTransaction.commit();
-    }
-
-    // отрисовка дополнительного фрагмента
-    private void showLandNoteDetails(int index) {
-        NoteDetailFragment noteDetailFragment = NoteDetailFragment.newInstance(index);
-        FragmentManager fragmentManager = requireActivity().getSupportFragmentManager();
-        FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
-        fragmentTransaction.replace(R.id.notes_container, noteDetailFragment); // замена фрагмента
+        fragmentTransaction.replace(R.id.note_container, noteDetailFragment); // замена фрагмента
         fragmentTransaction.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE);
         fragmentTransaction.commit();
     }
