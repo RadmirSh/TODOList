@@ -1,5 +1,7 @@
 package com.example.todolist;
 
+import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.content.res.Configuration;
 import android.media.VolumeShaper;
 import android.os.Build;
@@ -68,15 +70,29 @@ public class NoteDetailFragment extends Fragment {
 
         if (item.getItemId() == R.id.action_delete) {         //получаю ссылку на обект item
 
-            Notes.getNotes().remove(note); //удаляю элемент из коллекции
-            updateData();
-            if (!isLandscape()) {
-                requireActivity().getSupportFragmentManager().popBackStack();
+            //создание диалогового окна при удалении заметки
+            new AlertDialog.Builder(getContext())
+                    .setTitle("Внимание")
+                    .setMessage("Желаете удалить заметку?")
+                    .setPositiveButton("Да", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialogInterface, int i) {
+                            Notes.getNotes().remove(note); //удаляю элемент из коллекции
+                            note = null;
+                            updateData(true);
+                            if (!isLandscape()) {
+                                requireActivity().getSupportFragmentManager().popBackStack();
                 /*всплывающее сообщение при удалении заметки(использование статического метода)
                 Toast.makeText(getContext(), "Заметка удалена", Toast.LENGTH_LONG).show();*/
-                if (deleteToast != null)
-                    deleteToast.show();
-            }
+                                if (deleteToast != null)
+                                    deleteToast.show();
+                            }
+                        }
+                    })
+                    .setNegativeButton("Нет", null)
+                    .show();
+
+
             return true;
         }
 
@@ -164,7 +180,7 @@ public class NoteDetailFragment extends Fragment {
                 public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
                     // запись значения Name
                     note.setName(tvName.getText().toString());
-                    updateData();
+                    updateData(true);
                     // Notes.getNotes()[index].setName(charSequence.toString());
                 }
 
@@ -179,12 +195,12 @@ public class NoteDetailFragment extends Fragment {
     }
 
     //возвращаю фрагменты NotesFragment
-    @RequiresApi(api = Build.VERSION_CODES.N)
-    private void updateData() {
-        NotesFragment notesFragment = (NotesFragment) requireActivity().getSupportFragmentManager().getFragments().stream().filter(fragment -> fragment instanceof NotesFragment)
-                .findFirst().get();
-        notesFragment.initNotes();
 
+    @RequiresApi(api = Build.VERSION_CODES.N)
+    private void updateData(boolean isDelete) {
+        NotesFragment notesFragment = (NotesFragment) requireActivity().getSupportFragmentManager().
+                getFragments().stream().filter(fragment -> fragment instanceof NotesFragment).findFirst().get();
+        notesFragment.initNotes(isDelete);
     }
 
     public static NoteDetailFragment newInstance(int index) {

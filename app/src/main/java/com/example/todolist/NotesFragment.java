@@ -21,6 +21,8 @@ import android.widget.TextView;
 
 import static com.example.todolist.NoteDetailFragment.SELECTED_NOTE;
 
+import com.google.android.material.snackbar.Snackbar;
+
 
 public class NotesFragment extends Fragment {
 
@@ -78,7 +80,7 @@ public class NotesFragment extends Fragment {
                 == Configuration.ORIENTATION_LANDSCAPE;
     }
 
-    public void initNotes() {
+    public void initNotes(boolean isDelete) {
         initNotes(dataContainer);
     }
 
@@ -112,7 +114,9 @@ public class NotesFragment extends Fragment {
                     switch (menuItem.getItemId()) {
                         case R.id.action_popup_delete:
                             Notes.getNotes().remove(index);
-                            rootView.removeView(view);
+                            ((LinearLayout)rootView).removeView(view);
+                            //сообщение при удалении заметки с помощью контекстного меню
+                            Snackbar.make(rootView, "Заметка удалена", Snackbar.LENGTH_SHORT).show();
                             break;
                     }
                     return true;
