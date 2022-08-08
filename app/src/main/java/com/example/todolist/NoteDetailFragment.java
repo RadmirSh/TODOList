@@ -1,5 +1,7 @@
 package com.example.todolist;
 
+import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.content.res.Configuration;
 import android.media.VolumeShaper;
 import android.os.Build;
@@ -12,6 +14,7 @@ import androidx.fragment.app.Fragment;
 
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -19,7 +22,9 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import static com.example.todolist.NoteDetailFragment.SELECTED_NOTE;
 
@@ -30,6 +35,7 @@ public class NoteDetailFragment extends Fragment {
 
     static final String SELECTED_NOTE = "note";
     private Notes note;
+    private Toast deleteToast;
 
 
     public NoteDetailFragment() {
@@ -64,16 +70,50 @@ public class NoteDetailFragment extends Fragment {
 
         if (item.getItemId() == R.id.action_delete) {         //получаю ссылку на обект item
 
-            Notes.getNotes().remove(note); //удаляю элемент из коллекции
-            updateData();
-            if (!isLandscape()) {
-                requireActivity().getSupportFragmentManager().popBackStack();
-            }
+            //создание диалогового окна при удалении заметки
+            new AlertDialog.Builder(getContext())
+                    .setTitle("Внимание")
+                    .setMessage("Желаете удалить заметку?")
+                    .setPositiveButton("Да", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialogInterface, int i) {
+                            Notes.getNotes().remove(note); //удаляю элемент из коллекции
+                            note = null;
+                            updateData(true);
+                            if (!isLandscape()) {
+                                requireActivity().getSupportFragmentManager().popBackStack();
+                /*всплывающее сообщение при удалении заметки(использование статического метода)
+                Toast.makeText(getContext(), "Заметка удалена", Toast.LENGTH_LONG).show();*/
+                                if (deleteToast != null)
+                                    deleteToast.show();
+                            }
+                        }
+                    })
+                    .setNegativeButton("Нет", null)
+                    .show();
+
+
             return true;
         }
 
 
         return super.onOptionsItemSelected(item);
+    }
+
+    //доступ к View, его элементам, инициализация нового объекта Toast(установка его свойств и назначение ему layout)
+    private Toast prepareCustomToast(View view) {
+        LayoutInflater inflater = getLayoutInflater();
+        View layout = inflater.inflate(R.layout.my_toast_layout, (ViewGroup) view.findViewById(R.id.toast_layout_root));
+
+        ImageView image = (ImageView) layout.findViewById(R.id.image);
+        image.setImageResource(R.drawable.ic_baseline_input);
+        TextView text = (TextView) layout.findViewById(R.id.text_toast);
+        text.setText("Заметка удалена");
+        Toast toast = new Toast(getContext());
+        toast.setGravity(Gravity.CENTER_VERTICAL, 0, 0);
+        toast.setDuration(Toast.LENGTH_LONG);
+        toast.setView(layout);
+        return toast;
     }
 
     //метод для определения текущей ориентации
@@ -93,6 +133,10 @@ public class NoteDetailFragment extends Fragment {
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
+
+        deleteToast = prepareCustomToast(view);
+
+
         Bundle arguments = getArguments();
 
         Button buttonBack = view.findViewById(R.id.btnBack);
@@ -136,7 +180,7 @@ public class NoteDetailFragment extends Fragment {
                 public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
                     // запись значения Name
                     note.setName(tvName.getText().toString());
-                    updateData();
+                    updateData(true);
                     // Notes.getNotes()[index].setName(charSequence.toString());
                 }
 
@@ -151,12 +195,12 @@ public class NoteDetailFragment extends Fragment {
     }
 
     //возвращаю фрагменты NotesFragment
-    @RequiresApi(api = Build.VERSION_CODES.N)
-    private void updateData() {
-        NotesFragment notesFragment = (NotesFragment) requireActivity().getSupportFragmentManager().getFragments().stream().filter(fragment -> fragment instanceof NotesFragment)
-                .findFirst().get();
-        notesFragment.initNotes();
 
+    @RequiresApi(api = Build.VERSION_CODES.N)
+    private void updateData(boolean isDelete) {
+        NotesFragment notesFragment = (NotesFragment) requireActivity().getSupportFragmentManager().
+                getFragments().stream().filter(fragment -> fragment instanceof NotesFragment).findFirst().get();
+        notesFragment.initNotes(isDelete);
     }
 
     public static NoteDetailFragment newInstance(int index) {
